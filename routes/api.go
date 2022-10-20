@@ -2,11 +2,12 @@ package routes
 
 import (
 	"sosmed/controllers"
+	"sosmed/middleware"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-func Router(router *mux.Router) {
-	path := router.PathPrefix("/api/v1").Subrouter()
-	path.HandleFunc("/user", controllers.HandleUserRegister).Methods("POST", "GET")
+func Router(router *gin.Engine) {
+	url := "/api/v1/user"
+	router.POST(url+"/", middleware.UploadPhoto(), controllers.HandleUserRegister)
 }

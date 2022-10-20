@@ -1,17 +1,15 @@
 package main
 
 import (
-	"log"
-	"net/http"
 	"sosmed/db"
 	"sosmed/routes"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	db.Connect()
-	r := mux.NewRouter()
+	r := gin.Default()
 	routes.Router(r)
-	log.Fatal(http.ListenAndServe(":3000", r))
+	r.Run(":3000")
 }
