@@ -1,0 +1,7 @@
+@baseUrl = http://localhost:3000/api/v1
+
+GET {{baseUrl}}/user/register HTTP/1.1
+
+###
+
+POST {{baseUrl}}/user/register HTTP/1.1
