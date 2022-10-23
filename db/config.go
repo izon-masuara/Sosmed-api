@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB *mongo.Database
+var Db *Collections
 
 func Connect() {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
@@ -16,5 +16,6 @@ func Connect() {
 		panic(err.Error())
 	}
 	fmt.Println("Connect to mongo")
-	DB = client.Database("sosmed")
+	db := client.Database("sosmed")
+	Db = NewRepository(db)
 }
