@@ -11,28 +11,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UploadPhoto() gin.HandlerFunc {
+func UploadFile() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Request.ParseMultipartForm(2 << 20)
-		file, header, err := ctx.Request.FormFile("image")
+		ctx.Request.ParseMultipartForm(20 << 20)
+		file, header, err := ctx.Request.FormFile("File")
+
+		if header.Size >= 15000000 {
+			helper.ErrorHandler(ctx, "File Validation", "Size file must be less than 15 Mb")
+			return
+		}
 
 		if err != nil {
-			helper.ErrorHandler(ctx, "File Validation", "Image required")
+			helper.ErrorHandler(ctx, "File Validation", "File required")
 			return
 		}
 
 		defer file.Close()
-		img, err := ioutil.ReadAll(file)
+		buf, err := ioutil.ReadAll(file)
 		if err != nil {
 			helper.ErrorHandler(ctx, "Internal Server Error", nil)
 			return
 		}
-
 		filename := fmt.Sprintf("%v%v-%v-%s", rand.Intn(100), rand.Intn(200)+rand.Intn(300), rand.Int(), header.Filename)
-		var uploadFile = models.FileUser{
+		var uploadFile = models.File{
 			Filename: filename,
-			Buffer:   img,
+			Buffer:   buf,
 		}
+
 		success, err := db.Db.UploadFile(uploadFile)
 		if err != nil {
 			helper.ErrorHandler(ctx, "Internal Server Error", nil)

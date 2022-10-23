@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"io"
 	"net/http"
 	"sosmed/db"
 	"sosmed/helper"
@@ -12,8 +13,7 @@ import (
 var responseSuccess models.SuccessResponse
 
 func HandleUserRegister(ctx *gin.Context) {
-	var user models.UserRegister
-	user.Filename = ctx.MustGet("filename").(string)
+	var user models.User
 	err := ctx.ShouldBind(&user)
 	if err != nil {
 		helper.ErrorHandler(ctx, "Field Validation", err)
@@ -29,10 +29,9 @@ func HandleUserRegister(ctx *gin.Context) {
 
 	// Change password to password that has been hasing
 	user.Password = password
-	db.Db.UserRegister(user)
+	_, err = db.Db.UserRegister(user)
 	if err != nil {
-		db.Db.FindAndDeletePhoto(user.Filename)
-		helper.ErrorHandler(ctx, "Internal Server Error", nil)
+		helper.ErrorHandler(ctx, "Unauthorized", err.Error())
 		return
 	}
 	responseSuccess.Code = http.StatusOK
@@ -41,7 +40,7 @@ func HandleUserRegister(ctx *gin.Context) {
 }
 
 func HandleUserLogin(ctx *gin.Context) {
-	var user models.UserLogin
+	var user models.User
 
 	err := ctx.ShouldBind(&user)
 	if err != nil {
@@ -61,16 +60,51 @@ func HandleUserLogin(ctx *gin.Context) {
 	ctx.JSON(responseSuccess.Code, responseSuccess.Message)
 }
 
-// func HandleUserRegister(ctx *gin.Context) {
-// 	database := db.DB
-// 	data, err := database.Collection("user").Find(context.Background(), bson.D{})
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-// 	var users []models.UserRegister
-// 	if err = data.All(context.Background(), &users); err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	ctx.String(http.StatusOK, string(users[0].File.Buffer))
-// 	// ctx.Data(http.StatusOK, "application/octet-stream", users[0].File.Buffer)
-// }
+func UploadShortVideo(ctx *gin.Context) {
+	var payload models.ShortVideo
+	payload.Filename = ctx.MustGet("filename").(string)
+	payload.UploadedBy = ctx.Param("username")
+	err := ctx.ShouldBind(&payload)
+	if err != nil {
+		db.Db.FindAndDeleteFile(payload.Filename)
+		helper.ErrorHandler(ctx, "Field Validation", err)
+		return
+	}
+
+	result := db.Db.UserLogin(payload.UploadedBy)
+	if len(result.Username) == 0 {
+		db.Db.FindAndDeleteFile(payload.Filename)
+		helper.ErrorHandler(ctx, "Unauthorized", "Invalid User To Upload Video")
+		return
+	}
+
+	resp, err := db.Db.UploadShortVideo(payload)
+	if err != nil {
+		db.Db.FindAndDeleteFile(payload.Filename)
+		helper.ErrorHandler(ctx, "Internal Server Error", nil)
+		return
+	}
+
+	responseSuccess.Code = http.StatusOK
+	responseSuccess.Message = resp
+	ctx.JSON(responseSuccess.Code, responseSuccess)
+}
+
+func StreamShortVideo(ctx *gin.Context) {
+	videoFileName := ctx.Param("video-file-name")
+	result := db.Db.StreamShortVideo(videoFileName)
+	ctx.Stream(func(w io.Writer) bool {
+		w.Write(result.Buffer)
+		return false
+	})
+}
+
+func GetAllShortVideo(ctx *gin.Context) {
+	result, err := db.Db.GetAllShortVideo()
+	if err != nil {
+		helper.ErrorHandler(ctx, "Internal Server Error", nil)
+	}
+	responseSuccess.Code = http.StatusOK
+	responseSuccess.Message = result
+	ctx.JSON(responseSuccess.Code, responseSuccess.Message)
+}
