@@ -13,16 +13,22 @@ import (
 
 func UploadFile() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.Request.ParseMultipartForm(20 << 20)
 		file, header, err := ctx.Request.FormFile("File")
-
-		if header.Size >= 15000000 {
-			helper.ErrorHandler(ctx, "File Validation", "Size file must be less than 15 Mb")
-			return
-		}
 
 		if err != nil {
 			helper.ErrorHandler(ctx, "File Validation", "File required")
+			return
+		}
+
+		contentType := header.Header.Get("Content-Type")
+
+		if contentType != "video/mp4" {
+			helper.ErrorHandler(ctx, "File Validation", fmt.Sprintf("Content type must be %s", contentType))
+			return
+		}
+
+		if header.Size >= 15000000 {
+			helper.ErrorHandler(ctx, "File Validation", "Size file must be less than 15 Mb")
 			return
 		}
 

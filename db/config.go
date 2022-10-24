@@ -11,7 +11,7 @@ import (
 var Db *Collections
 
 func Connect() {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://mongo_sosmed:27017"))
 	if err != nil {
 		panic(err.Error())
 	}

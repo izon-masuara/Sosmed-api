@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  mongo:
+    container_name: mongo_sosmed
+    image: mongo
+    restart: always
+    ports:
+      - 27018:27017
+  sosmed:
+    container_name: sosmed_api
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - mongo

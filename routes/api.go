@@ -7,8 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func SetupRouter() *gin.Engine {
+	r := gin.Default()
+	return r
+}
+
 func Router(router *gin.Engine) {
-	v1 := router.Group("/api/v1/user")
+	v1 := router.Group("/api/v1/")
 	v1.POST("/", controllers.HandleUserRegister)
 	v1.POST("/login", controllers.HandleUserLogin)
 	v1.POST("/upload/:username", middleware.UploadFile(), controllers.UploadShortVideo)
