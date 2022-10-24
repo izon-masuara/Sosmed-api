@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"errors"
-	"log"
 	"sosmed/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -59,7 +58,7 @@ func (r *Collections) StreamShortVideo(filename string) *models.File {
 func (r *Collections) GetAllShortVideo() ([]*models.ShortVideo, error) {
 	csr, err := r.shortVideo.Find(context.Background(), bson.M{})
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	defer csr.Close(context.Background())
 
@@ -68,7 +67,7 @@ func (r *Collections) GetAllShortVideo() ([]*models.ShortVideo, error) {
 		var row models.ShortVideo
 		err := csr.Decode(&row)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		result = append(result, &row)
 	}

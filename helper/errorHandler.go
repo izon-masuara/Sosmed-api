@@ -31,6 +31,10 @@ func ErrorHandler(ctx *gin.Context, validation string, err interface{}) {
 		errorMessage.Code = http.StatusBadRequest
 		errorMessage.Message = err
 		ctx.JSON(errorMessage.Code, errorMessage)
+	case "Not Found":
+		errorMessage.Code = http.StatusBadRequest
+		errorMessage.Message = err
+		ctx.JSON(errorMessage.Code, errorMessage)
 	default:
 		ctx.JSON(http.StatusInternalServerError, "Internal Server Error")
 	}
